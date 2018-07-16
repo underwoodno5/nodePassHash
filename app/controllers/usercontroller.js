@@ -1,4 +1,5 @@
-const User = require('../models/users')
+const User = require('../models/users');
+const UserSession = require('../models/userSession');
 const bcrypt = require('bcrypt');
 
 
@@ -41,15 +42,12 @@ exports.create = (req,res)=>{
         }
 
     //-- creating new user --\\
-    
+    const newUser = new User();
+        newUser.email = email;
+        newUser.password = newUser.generateHash(password); // this is our hashing function
+  
 
-
-    const newUser = new User({
-        email: email,
-        password: bcrypt.hashSync(password, bcrypt.genSaltSync(8), null), // this is our hashing function
-    });
-
-    //-- saving new note --\\
+    //-- saving new user --\\
 
     newUser.save()
     .then(data=>{
@@ -61,3 +59,75 @@ exports.create = (req,res)=>{
     });
  });
 };
+
+exports.signIn = (req, res) => {
+    const { body } = req;
+    const {
+      password
+    } = body;
+    let {
+      email
+    } = body;
+
+
+    if (!email) {
+      return res.send({
+        success: false,
+        message: 'Error: Email cannot be blank.'
+      });
+    }
+    if (!password) {
+      return res.send({
+        success: false,
+        message: 'Error: Password cannot be blank.'
+      });
+    }
+
+    email = email.toLowerCase();
+    email = email.trim();
+
+    User.find({
+      email: email
+    }, (err, users) => {
+      if (err) {
+        console.log('err 2:', err);
+        return res.send({
+          success: false,
+          message: 'Error: server error'
+        });
+      }
+      if (users.length != 1) {
+        return res.send({
+          success: false,
+          message: 'Error: Invalid'
+        });
+      }
+
+      const user = users[0];
+      if (!bcrypt.compareSync(password, user.password)) {
+        return res.send({
+          success: false,
+          message: 'Error: Invalid'
+        });
+      }
+
+      // Otherwise correct user
+      const userSession = new UserSession();
+      userSession.userId = user._id;
+      userSession.save((err, doc) => {
+        if (err) {
+          console.log(err);
+          return res.send({
+            success: false,
+            message: 'Error: server error'
+          });
+        }
+
+        return res.send({
+          success: true,
+          message: 'Valid sign in',
+          token: doc._id
+        });
+      });
+    });
+} 
