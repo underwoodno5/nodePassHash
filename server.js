@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser =require('body-parser');
+const expressValidator = require('express-validator')
 const app = express();
 
 //---------------
@@ -8,6 +9,7 @@ const app = express();
 //---------------
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
+app.use(expressValidator());
 
     //connecting to our mongoDB
 const dbConfig = require('./config/database');

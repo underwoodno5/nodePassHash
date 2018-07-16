@@ -1,7 +1,7 @@
 const User = require('../models/users');
 const UserSession = require('../models/userSession');
 const bcrypt = require('bcrypt');
-
+const { check, validationResult } = require('express-validator/check');
 
 //-----------------
 //-- CREATING USERS
@@ -11,6 +11,11 @@ exports.create = (req,res)=>{
     const { body } = req;
     const { password } = body;
     let {email} = body;
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      return res.status(422).json({errors: errors.array() });
+    }
 
     //-- error handling empty forms --\\
     if (!password){
@@ -23,6 +28,7 @@ exports.create = (req,res)=>{
             message: "email cannot be empty"
         });
     }
+  
 
     //--checking if new user exists--\\
 
