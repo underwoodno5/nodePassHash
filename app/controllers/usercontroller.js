@@ -1,7 +1,8 @@
 const User = require('../models/users');
 const UserSession = require('../models/userSession');
 const bcrypt = require('bcrypt');
-const { check, validationResult } = require('express-validator/check');
+const { sanitizeParam } = require('express-validator/filter');
+
 
 
 //-----------------
@@ -10,9 +11,11 @@ const { check, validationResult } = require('express-validator/check');
 exports.create = (req,res)=>{
 
   //------- check validation and return home if failed, execute POST if pass
+    req.sanitize('email').escape('/');
+    req.sanitize('password').escape('/');
+    req.sanitize('password').escape('{');
     req.check('email', 'Invalid email').isEmail();
     req.check('password', 'Password is too short').isLength({min: 4});
-
     
     var errors = req.validationErrors();
     if(errors){
@@ -31,7 +34,7 @@ exports.create = (req,res)=>{
 
 //---- checking if new user exists
 
-  /* User.find({
+  /*User.find({
         email: email,
     },(err, oldUsers)=>{
         if(err){
@@ -49,7 +52,7 @@ exports.create = (req,res)=>{
 //---- creating new user
     const newUser = new User();
         newUser.email = email;
-        newUser.password = newUser.generateHash(password); // this is our hashing function
+        newUser.password = password;//newUser.generateHash(password); // this is our hashing function
   
 //----- saving new user
 
@@ -62,7 +65,7 @@ exports.create = (req,res)=>{
           return res.redirect('back');
         }
     });   
- // });
+// });
 };
 
 //-----------------
@@ -95,7 +98,7 @@ exports.signIn = (req, res) => {
     email = email.toLowerCase();
     email = email.trim();
 
-    User.find({
+    /*User.find({
       email: email
     }, (err, users) => {
       if (err) {
@@ -110,7 +113,7 @@ exports.signIn = (req, res) => {
           success: false,
           message: 'Error: no user with that name'
         });
-      }
+      }*/
 
   //-- using bcrypt to compare login pass with db pass --\\
       const user = users[0];
@@ -139,5 +142,5 @@ exports.signIn = (req, res) => {
           token: doc._id
         });
       });
-   });
+   //});
 };

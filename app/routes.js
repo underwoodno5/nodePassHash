@@ -3,6 +3,8 @@ module.exports = (app) => {
     const { body } = require('express-validator/check');
     const { check, validationResult } = require('express-validator/check');
     const User = require('./models/users');
+    const { sanitizeParam } = require('express-validator/filter');
+
 
     //------------
     //-- HOMEPAGE
@@ -13,19 +15,24 @@ module.exports = (app) => {
         req.session.success = false;
 
     });
-
-
     //---------
     //-- SIGNUP
     //---------
-    //-- custom validation for checking if email exists in DB
-    app.post('/signup', 
-    check('email').custom(async (value,{req})=>{
-        let user = await User.findOne({ email: value });
+    //-- custom validation for sanitising {} and checking if email exists in DB
+    app.post('/signup',
+    
+    check('email').custom(async (value)=>{
+         if(value.includes('{')|| value.includes('}')){
+             return false;
+         }
+      }) .withMessage('cannot use curly braces in email'),
+
+    check('email').custom(async (value)=>{
+       let user = await User.findOne({ email: value });
         if(user){
             return false;
         }
-     }) .withMessage('Email already exists'),  user.create);
+     }) .withMessage('Email already in use'),  user.create);
     
     
     //---------
