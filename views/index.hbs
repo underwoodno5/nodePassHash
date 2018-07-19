@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+    
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <style>
+        body        { padding-top:80px; background-color:black;}
+        .form-control {width: 50%; margin-left:25%;}
+        .signup {margin-bottom:25px; margin-top:10px;}
+        .success {background: #7bceea8f; width: 30%; height: 65px; margin-left: 35%; text-align: center; padding-top: 1px;}
+        .errors {background: #ea7b7b8f; width: 40%; margin-left: 30%; text-align: left; padding-left: 20px;}
+        ul{list-style-type: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="jumbotron text-center">
+        <h1><i class="fas fa-key"></i>Enviro Login</h1>
+        {{#if success }}
+        <section class="success">
+            <h2>Success!</h2>
+        </section>
+        {{else}}
+            {{#if errors}}
+                <ul>
+                    {{#each errors}}
+                    <section class="errors">
+                        <li>{{this.msg}}</li>
+                    </section>
+                    {{/each}}
+                </ul>
+            {{/if}}
+            {{#if usedEmail}}
+            <section class="success">
+            <h2>email in use</h2>
+             </section>
+            {{/if}}
+        {{/if}}
+
+        <p>Login or Register with:</p>
+
+        <form method="post" action="/signup">
+            <input type="text" name="email" placeholder="email" class="form-control">
+            <input type="text" name="password" placeholder="password" class="form-control">
+            <button type="submit" class="btn btn-danger signup">New User
+
+            </button>
+        </form>
+        <form method="post" action="/signin">
+            <input type="text" name="email" placeholder="email" class="form-control">
+            <input type="text" name="password" placeholder="password" class="form-control">
+            <button type="submit" class="btn btn-danger">Sign In</button>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

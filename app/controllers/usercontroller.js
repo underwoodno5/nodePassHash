@@ -3,36 +3,35 @@ const UserSession = require('../models/userSession');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator/check');
 
+
 //-----------------
 //-- CREATING USERS
 //-----------------
 exports.create = (req,res)=>{
 
+  //------- check validation and return home if failed, execute POST if pass
+    req.check('email', 'Invalid email').isEmail();
+    req.check('password', 'Password is too short').isLength({min: 4});
+
+    
+    var errors = req.validationErrors();
+    if(errors){
+      req.session.errors = errors;
+      req.session.success = false;
+      return res.redirect('back');
+      ;
+    }else{
+      req.session.success = true;
+    }
+    
+
     const { body } = req;
     const { password } = body;
     let {email} = body;
 
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-      return res.status(422).json({errors: errors.array() });
-    }
+//---- checking if new user exists
 
-    //-- error handling empty forms --\\
-    if (!password){
-        return res.status(400).send({
-            message: "Password cannot be empty"
-        });
-    }
-    if (!email){
-        return res.status(400).send({
-            message: "email cannot be empty"
-        });
-    }
-  
-
-    //--checking if new user exists--\\
-
-    User.find({
+  /* User.find({
         email: email,
     },(err, oldUsers)=>{
         if(err){
@@ -41,31 +40,34 @@ exports.create = (req,res)=>{
                 message: 'some kind of server error'
             });
         }else if(oldUsers.length > 0){
-            return res.send({
-                success:false,
-                message: 'user exists with that email'
-            });
-        }
+          return res.send({
+            success: false,
+            message: 'email in use'
+        });
+      }*/
 
-    //-- creating new user --\\
+//---- creating new user
     const newUser = new User();
         newUser.email = email;
         newUser.password = newUser.generateHash(password); // this is our hashing function
   
+//----- saving new user
 
-    //-- saving new user --\\
-
-    newUser.save()
-    .then(data=>{
-        res.send(data);
-    }).catch(err=>{
-        res.status(500).send({
+      newUser.save(function(err){
+        if(err){
+           res.status(500).send({
             message: err.message || "something went wrong saving"
-        });
-    });
- });
+          });
+        }else{
+          return res.redirect('back');
+        }
+    });   
+ // });
 };
 
+//-----------------
+//--  USER SIGN-IN
+//-----------------
 exports.signIn = (req, res) => {
     const { body } = req;
     const {
@@ -76,6 +78,7 @@ exports.signIn = (req, res) => {
     } = body;
 
 
+//-- error handling empty forms --\\
     if (!email) {
       return res.send({
         success: false,
@@ -105,15 +108,16 @@ exports.signIn = (req, res) => {
       if (users.length != 1) {
         return res.send({
           success: false,
-          message: 'Error: Invalid'
+          message: 'Error: no user with that name'
         });
       }
 
+  //-- using bcrypt to compare login pass with db pass --\\
       const user = users[0];
       if (!bcrypt.compareSync(password, user.password)) {
         return res.send({
           success: false,
-          message: 'Error: Invalid'
+          message: 'Error: wrong password'
         });
       }
 
@@ -135,5 +139,5 @@ exports.signIn = (req, res) => {
           token: doc._id
         });
       });
-    });
-} 
+   });
+};
