@@ -1,10 +1,7 @@
 module.exports = (app) => {
     const user = require('./controllers/usercontroller');
-    const { body } = require('express-validator/check');
     const { check, validationResult } = require('express-validator/check');
     const User = require('./models/users');
-    const { sanitizeParam } = require('express-validator/filter');
-
 
     //------------
     //-- HOMEPAGE
@@ -38,7 +35,13 @@ module.exports = (app) => {
     //---------
     //-- SIGNIN
     //---------
-    app.post('/signin', user.signIn);
+    app.post('/signin',
+        check('email').custom(async (value)=>{
+            let user = await User.findOne({ email: value });
+            if(!user){
+                return false;
+            }    
+        }) .withMessage('no account with that email'), user.signIn);
 
    
 
